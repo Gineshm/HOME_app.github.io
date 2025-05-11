@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Apóyame</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body {
+      background-color: #0a0a0a;
+      color: #ffffff;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: #ffffff;
+      margin-bottom: 20px;
+    }
+
+    p.subtitle {
+      font-size: 1.2rem;
+      color: #aaa;
+      margin-bottom: 40px;
+    }
+
+    .qr-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 25px;
+    }
+
+    .qr-card {
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid #333;
+      transition: transform 0.3s ease;
+    }
+
+    .qr-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .qr-card img.qr-img {
+      width: 90px;
+      height: 90px;
+      margin-top: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .qr-card img.qr-img:hover {
+      transform: scale(1.1);
+    }
+
+    .qr-card i {
+      font-size: 40px;
+      margin-bottom: 10px;
+      color: #ff4d4d;
+    }
+
+    .qr-card p {
+      margin: 10px 0;
+      font-weight: bold;
+    }
+
+    .qr-card a {
+      text-decoration: none;
+      color: #ff4d4d;
+      font-weight: 500;
+    }
+
+    #qrModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+
+    #qrModal img {
+      width: 320px;
+      height: 320px;
+      border-radius: 12px;
+      border: 4px solid white;
+    }
+
+    @media (max-width: 500px) {
+      h1 {
+        font-size: 2rem;
+      }
+      .qr-card i {
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Apóyame</h1>
+  <p class="subtitle">Elige tu método de apoyo preferido</p>
+
+  <div class="qr-grid">
+    <div class="qr-card">
+      <i class="fab fa-paypal"></i>
+      <p>PayPal</p>
+      <a href="https://www.paypal.me/tuusuario" target="_blank">Donar con PayPal</a>
+    </div>
+
+    <div class="qr-card">
+      <img src="https://i.ibb.co/xK5fs8ZG/descarga-removebg-preview.png" alt="Yape" style="height: 40px;" />
+      <p>Yape</p>
+      <img class="qr-img" src="https://tuimagen.com/yape_qr.png" onclick="ampliarQR(this.src)" />
+    </div>
+
+    <div class="qr-card">
+      <img src="https://i.ibb.co/MDSHxFp5/PLIN-removebg-preview.png" alt="Plin" style="height: 40px;" />
+      <p>Plin</p>
+      <img class="qr-img" src="https://tuimagen.com/plin_qr.png" onclick="ampliarQR(this.src)" />
+    </div>
+
+    <div class="qr-card">
+      <i class="fab fa-btc"></i>
+      <p>Binance</p>
+      <img class="qr-img" src="https://tuimagen.com/binance_qr.png" onclick="ampliarQR(this.src)" />
+    </div>
+
+    <div class="qr-card">
+      <i class="fas fa-credit-card"></i>
+      <p>Tarjeta</p>
+      <a href="https://tucheckout.com/pagar" target="_blank">Pagar con tarjeta</a>
+    </div>
+  </div>
+</div>
+
+<!-- Modal QR -->
+<div id="qrModal" onclick="cerrarQR()">
+  <img src="" id="qrGrande" />
+</div>
+
+<script>
+  function ampliarQR(src) {
+    document.getElementById("qrGrande").src = src;
+    document.getElementById("qrModal").style.display = "flex";
+  }
+
+  function cerrarQR() {
+    document.getElementById("qrModal").style.display = "none";
+  }
+</script>
+
+</body>
+</html>
