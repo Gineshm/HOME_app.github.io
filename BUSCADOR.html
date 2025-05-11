@@ -1,0 +1,463 @@
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Películas y Series</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            background-color: #111;
+            color: white;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px;
+            position: sticky;
+            top: 0;
+            background-color: #111;
+            z-index: 1000;
+        }
+
+        .search-input {
+            padding: 12px 20px;
+            font-size: 1em;
+            border: 2px solid #FF0000;
+            border-radius: 25px 0 0 25px;
+            width: 300px;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: #FF0000;
+            box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+        }
+
+        .search-button {
+            padding: 12px 20px;
+            font-size: 1em;
+            background-color: #FF0000;
+            color: white;
+            border: none;
+            border-radius: 0 25px 25px 0;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .search-button:hover {
+            background-color: #FF0000;
+            transform: translateY(-2px);
+        }
+
+        .button-pressed {
+            transform: scale(0.95);
+            transition: transform 0.1s;
+        }
+
+        .series-container {
+            margin: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .series-item {
+            position: relative;
+            width: 90px; /* Ancho ajustado */
+        }
+
+        .series-item a {
+            text-decoration: none;
+            color: white;
+            transition: transform 0.3s;
+            display: block;
+            height: 100%;
+        }
+
+        .series-item img {
+            width: 100px; /* Ancho ajustado */
+            height: 150px; /* Alto ajustado */
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
+        .calificacion {
+            position: absolute;
+            top: 10px;
+            right: 0px;
+            background-color: rgba(255, 0, 0, 0.7);
+            color: white;
+            padding: 1px 5px;
+            border-radius: 20px;
+        }
+
+        .series-title {
+            margin-top: 5px;
+            color: white;
+            font-size: 1em;
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            max-width: 110px; /* Ajustar según el nuevo tamaño */
+            display: block;
+        }
+
+        .highlight {
+            background-color: #FF0000;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .load-more {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #FF0000;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            width: 100px;
+        }
+
+        .load-more:hover {
+            background-color: #FF0000;
+        }
+
+        .no-results {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+        }
+
+        .history-icon {
+            margin-right: 20px;
+            font-size: 32px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1002;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #222;
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .history-item img {
+            width: 80px;
+            height: auto;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .remove-button {
+            background-color: transparent;
+            border: none;
+            color: #FF0000;
+            cursor: pointer;
+            margin-left: auto;
+            font-size: 16px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            color: white;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <div class="history-icon" id="historyIcon">
+            <i class="fas fa-history"></i>
+        </div>
+        <input type="text" class="search-input" placeholder="Buscar películas o series...">
+        <button class="search-button">Buscar</button>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModal">×</span>
+            <h3>Historial de Películas Vistas</h3>
+            <div id="historyContainer"></div>
+        </div>
+    </div>
+
+    <div class="series-container" id="seriesContainer">
+        <!-- Series se cargarán aquí -->
+    </div>
+
+    <div class="no-results" id="noResultsMessage" style="display:none;">No se encontraron resultados</div>
+
+    <button class="load-more" id="loadMore">Ver más</button>
+
+    <script>
+        const seriesData = [
+            { title: "Starship Troopers 2: El héroe de la federación (2004)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/3FZJZcXFsEdwGQm8HFXha6VpxvM.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Starship-Troopers-2:-El-héroe-de-la-federación.html" },
+            
+            { title: "Locos por el surf (2007)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/9pHrNZJFAGUxCWOzpqCz5nniUaa.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Locos-por-el-surf.html" },
+            
+            { title: "Starship Troopers: Las brigadas del espacio (1997)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/rK7LafXBhHKjALYOT3jRUTlFdpk.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Starship-Troopers:-Las-brigadas-del-espacio.html" },
+            
+            { title: "Ponyo en el acantilado (2008)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/nhp8r2zx4u6NfYRPISfVPE4AM6N.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Ponyo-en-el-acantilado.html" },
+        
+            { title: "365 días (2020)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/jz8T3hrU6GuMqSuQ4Rbd4MJUeaq.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/365-días.html" },
+            
+            { title: "Secreto Matusita (2014)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/3hIJYEM2FReIqlavHOujvBx6ixP.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Secreto-Matusita.html" },
+            
+            { title: "Días de Santiago (2004)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/wCu2SfFWufSxU5EbthVaBELYR1B.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Días-de-Santiago.html" },
+            
+            { title: "One Piece (1999)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/cMD9Ygz11zjJzAovURpO75Qg7rT.jpg", url: "https://nagi-plus4.github.io/flay_info_animes.github.io/One-Piece.html" },
+            
+            { title: "Sakamoto Days (2025)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/wRpCqsJFyKNuh5FMegNPrhzp2NF.jpg", url: "https://nagi-plus4.github.io/flay_info_animes.github.io/Sakamoto-Days.html" },
+            
+            { title: "Alvin y las ardillas 2 (2009)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w500/8OMxfeZq7TtoRoHaQVaNaq9FqOu.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Alvin-y-las-ardillas.html" },
+            
+            { title: "Una Película de Minecraft (2025)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w600_and_h900_bestv2/mFjtmmh4RtK9tLv1aPnUsl6st3m.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Una-pel%C3%ADcula-de-Minecraft.html" },
+            
+            { title: "Dragon Ball Daima (2024)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w600_and_h900_bestv2/brd9Bp1MlH8oK2nzR6VV9imY46k.jpg", url: "https://nagi-plus4.github.io/flay_info_animes.github.io/Dragon-Ball-Daima.html" },
+            
+            { title: "CATO (2021)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/lTCsGvAjqBbqp7T5ziK28SeDfVT.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/CATO.html" },
+            
+            { title: "Algo embarazada (2025)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/lpMXvcdOnEg4rvsIjWEImhHI1aH.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Algo-embarazada.html" },
+            
+            { title: "Panda Plan (2024)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/sul3eKDF9rb0wn2Q9wFfv61lOGi.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Panda-Plan.html" },
+            
+            { title: "Nosferatu (2024)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/jivUhECegXI3OYtPVflWoIDtENt.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Nosferatu.html" },
+            
+            { title: "Los pingüinos de Madagascar (2014)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/lEnUxCpQUyntm2eLBzCTv3bfplV.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Los-pingüinos-de-Madagascar.html" },
+            
+            { title: "Es Guapísimo, Eres Mi Estrella (2011)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/gfcy0IVFcZXuX1kClzsD3jq5Ufi.jpg", url: "https://nagi-plus4.github.io/flay_info_series.github.io/Eres-mi-estrella.html" },
+            
+            { title: "Devara: Parte 1 (2024)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/A9ENz6d4lC3UYOX8Z1gJwDEo1sM.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Devara:-Parte-1.html" },
+            
+            { title: "Hombre lobo (2025)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/k6VBhNc66CdGTEdw7sR7GBt7AFY.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Hombre-lobo.html" },
+            
+            { title: "Mufasa: El rey león (2024)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/dmw74cWIEKaEgl5Dv3kUTcCob6D.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Mufasa:-El-rey-león.html" },
+            
+            { title: "Sonic 3: La película (2024)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/3aDWCRXLYOCuxjrjiPfLd79tcI6.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Sonic-3:-La-película.html" },
+            
+            { title: "Vaiana 2 (2024)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/b1WsCRfomw7tRi12NuseKsAJxYK.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Vaiana-2.html" },
+            
+            { title: "Venom: El último baile (2024)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/8F74DwgFxTIBNtbqSLjR7zWmnHh.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Venom:-El-último-baile.html" },
+            
+            { title: "El despertar de la bestia (2024)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/wHsQwrqiICdEkIXFcX968rVqB3s.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/El-despertar-de-la-bestia.html" },
+            
+            { title: "Toriko & One Piece & Dragon Ball Z (2013)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/1azUShBxKqHUUJf61BIpnJTtAWO.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Toriko-&-One-Piece-&-Dragon-Ball-Z.html" },
+            
+            { title: "Spy x Family Código: Blanco (2023)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/wLNPoAHTtrQT1hEVRixtTD4k6Qm.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Spy-x-Family-Código:-Blanco.html" },
+            
+            { title: "El castillo ambulante (2004)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/p8EARnEw8KPZzlZg3vkseYVMczu.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/El-castillo-ambulante.html" },
+            
+            { title: "Sword Art Online: Extra Edition (2013)", calificacion: "ES", img: "https://media.themoviedb.org/t/p/w500/nWr2GUTKRR4d8aCApF93OzBfq3e.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Sword-Art-Online:-Extra-Edition.html" },
+            
+            { title: "Demon Slayer: Tren infinito (2020)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w500/8t29MfbEkEZixjVbjRkqI5NyFR4.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Demon-Slayer:-Tren-infinito.html" },
+            
+            { title: "El juego del calamar (2021)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/74qMRUy0lwkBBi39vsQVerIDkHj.jpg", url: "https://nagi-plus4.github.io/flay_info_series.github.io/El-juego-del-calamar.html" },
+            
+            { title: "Belleza verdadera (2020)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/zfKcn6xqCu0zopDdWPiYC7t4R2g.jpg", url: "https://nagi-plus4.github.io/flay_info_series.github.io/Belleza-verdadera.html" },
+            
+            { title: "TRON (1982)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/jJ8eBV407GHn6q0nIvSsnt0C6vV.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/TRON.html" },
+            
+            { title: "Turno nocturno (2024)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/iSSx9Bys64vlOkvkyKXtp19P7Re.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Turno-nocturno.html" },
+            
+            { title: "Starship Troopers 3: Armas del futuro (2008)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/hi9m0B83RW0w1Y9iBDl78oOj2Qu.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Starship-Troopers-3:-Armas-del-futuro.html" },
+            
+            { title: "Kimi (2022)", calificacion: "LAT", img: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/pdtYfXjnOeBMMuE4UpL8FbbnKBd.jpg", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/Kimi.html" },
+            
+            { title: "", calificacion: "LAT", img: "", url: "https://nagi-plus4.github.io/flay_info_series.github.io/" }, //series
+            
+            { title: "", calificacion: "LAT", img: "", url: "https://nagi-plus4.github.io/flay_info_peliculas.github.io/" }, //peliculas
+            
+        ];
+
+        const seriesContainer = document.getElementById('seriesContainer');
+        const loadMoreButton = document.getElementById('loadMore');
+        const searchInput = document.querySelector('.search-input');
+        const noResultsMessage = document.getElementById('noResultsMessage');
+        const searchButton = document.querySelector('.search-button');
+        const historyIcon = document.getElementById('historyIcon');
+        const modal = document.getElementById('modal');
+        const closeModal = document.getElementById('closeModal');
+        const historyContainer = document.getElementById('historyContainer');
+
+        let currentCount = 0;
+        const itemsPerLoad = 20;
+
+        function loadSeries(startIndex = 0, endIndex = itemsPerLoad) {
+            const end = Math.min(startIndex + endIndex, seriesData.length);
+            for (let i = startIndex; i < end; i++) {
+                const newSeriesItem = document.createElement('div');
+                newSeriesItem.classList.add('series-item');
+                newSeriesItem.innerHTML = `
+                    <a href="${seriesData[i].url}" target="_blank" onclick="saveToHistory('${seriesData[i].title}', '${seriesData[i].img}')">
+                        <img src="${seriesData[i].img}" alt="${seriesData[i].title}">
+                        <span class="calificacion">${seriesData[i].calificacion}</span>
+                        <span class="series-title">${highlightMatch(seriesData[i].title, searchInput.value)}</span>
+                    </a>
+                `;
+                seriesContainer.appendChild(newSeriesItem);
+            }
+            currentCount += itemsPerLoad;
+
+            if (currentCount >= seriesData.length) {
+                loadMoreButton.style.display = 'none';
+            }
+        }
+
+        function highlightMatch(title, query) {
+            if (!query) return title;
+            const regex = new RegExp(`(${query})`, 'gi');
+            return title.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        function filterSeries() {
+            const query = normalizeString(searchInput.value);
+            const filteredData = seriesData.filter(series =>
+                normalizeString(series.title).includes(query)
+            );
+
+            seriesContainer.innerHTML = '';
+            noResultsMessage.style.display = 'none';
+
+            if (filteredData.length > 0) {
+                filteredData.forEach(series => {
+                    const newSeriesItem = document.createElement('div');
+                    newSeriesItem.classList.add('series-item');
+                    newSeriesItem.innerHTML = `
+                        <a href="${series.url}" target="_blank" onclick="saveToHistory('${series.title}', '${series.img}')">
+                            <img src="${series.img}" alt="${series.title}">
+                            <span class="calificacion">${series.calificacion}</span>
+                            <span class="series-title">${highlightMatch(series.title, searchInput.value)}</span>
+                        </a>
+                    `;
+                    seriesContainer.appendChild(newSeriesItem);
+                });
+            } else {
+                noResultsMessage.style.display = 'block';
+            }
+        }
+
+        function normalizeString(str) {
+            return str
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"")
+                .trim();
+        }
+
+        function saveToHistory(title, img) {
+            let history = JSON.parse(localStorage.getItem('movieHistory')) || [];
+            const movie = { title, img };
+            const existingIndex = history.findIndex(item => item.title === movie.title);
+            if (existingIndex !== -1) {
+                history.splice(existingIndex, 1);
+            }
+            history.push(movie);
+            localStorage.setItem('movieHistory', JSON.stringify(history));
+        }
+
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('movieHistory')) || [];
+            historyContainer.innerHTML = '';
+
+            history.reverse().forEach((movie, index) => {
+                const movieItem = document.createElement('div');
+                movieItem.classList.add('history-item');
+                movieItem.innerHTML = `
+                    <a href="${seriesData.find(s => s.title === movie.title).url}" target="_blank">
+                        <img src="${movie.img}" alt="${movie.title}">
+                    </a>
+                    <p>${movie.title}</p>
+                    <button class="remove-button" onclick="removeFromHistory(${index})">× Quitar</button>
+                `;
+                historyContainer.appendChild(movieItem);
+            });
+        }
+
+        function removeFromHistory(index) {
+            let history = JSON.parse(localStorage.getItem('movieHistory')) || [];
+            history.splice(index, 1);
+            localStorage.setItem('movieHistory', JSON.stringify(history));
+            loadHistory();
+        }
+
+        loadSeries();
+
+        loadMoreButton.addEventListener('click', () => loadSeries(currentCount));
+
+        searchInput.addEventListener('input', debounce(filterSeries, 300));
+
+        searchButton.addEventListener('mousedown', () => {
+            searchButton.classList.add('button-pressed');
+        });
+        searchButton.addEventListener('mouseup', () => {
+            searchButton.classList.remove('button-pressed');
+        });
+        searchButton.addEventListener('mouseleave', () => {
+            searchButton.classList.remove('button-pressed');
+        });
+
+        loadMoreButton.addEventListener('mousedown', () => {
+            loadMoreButton.classList.add('button-pressed');
+        });
+        loadMoreButton.addEventListener('mouseup', () => {
+            loadMoreButton.classList.remove('button-pressed');
+        });
+        loadMoreButton.addEventListener('mouseleave', () => {
+            loadMoreButton.classList.remove('button-pressed');
+        });
+
+        historyIcon.addEventListener('click', () => {
+            modal.style.display = 'flex';
+            loadHistory();
+        });
+
+        closeModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        function debounce(func, delay) {
+            let timeout;
+            return function() {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, arguments), delay);
+            };
+        }
+    </script>
+</body>
+</html>
