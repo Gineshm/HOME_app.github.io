@@ -8,80 +8,71 @@
   <style>
     body {
       background-color: #0a0a0a;
-      color: #ffffff;
+      color: #fff;
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
       padding: 0;
     }
 
     .container {
-      max-width: 900px;
+      max-width: 800px;
       margin: auto;
       padding: 40px 20px;
-      text-align: center;
     }
 
     h1 {
-      font-size: 2.5rem;
-      color: #ffffff;
-      margin-bottom: 20px;
-    }
-
-    p.subtitle {
-      font-size: 1.2rem;
-      color: #aaa;
+      color: #ff4d4d;
+      text-align: center;
       margin-bottom: 40px;
     }
 
     .qr-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 25px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 20px;
     }
 
     .qr-card {
-      background: #1a1a1a;
+      background: #1c1c1c;
       padding: 20px;
       border-radius: 12px;
-      border: 1px solid #333;
+      text-align: center;
+      border: 1px solid #444;
       transition: transform 0.3s ease;
+      cursor: pointer;
     }
 
     .qr-card:hover {
-      transform: translateY(-5px);
+      transform: scale(1.05);
     }
 
-    .qr-card img.qr-img {
+    .qr-card img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+    }
+
+    .qr-card .qr-img {
       width: 90px;
       height: 90px;
-      margin-top: 15px;
+      margin-top: 10px;
       border-radius: 8px;
-      cursor: pointer;
-      transition: transform 0.2s ease;
     }
 
-    .qr-card img.qr-img:hover {
-      transform: scale(1.1);
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ff4d4d;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 6px;
+      display: none;
+      z-index: 1000;
     }
 
-    .qr-card i {
-      font-size: 40px;
-      margin-bottom: 10px;
-      color: #ff4d4d;
-    }
-
-    .qr-card p {
-      margin: 10px 0;
-      font-weight: bold;
-    }
-
-    .qr-card a {
-      text-decoration: none;
-      color: #ff4d4d;
-      font-weight: 500;
-    }
-
-    #qrModal {
+    #qrModal, #thankModal {
       display: none;
       position: fixed;
       top: 0; left: 0;
@@ -93,19 +84,46 @@
     }
 
     #qrModal img {
-      width: 320px;
-      height: 320px;
-      border-radius: 12px;
+      width: 300px;
+      height: 300px;
+      border-radius: 10px;
       border: 4px solid white;
     }
 
-    @media (max-width: 500px) {
-      h1 {
-        font-size: 2rem;
-      }
-      .qr-card i {
-        font-size: 32px;
-      }
+    .thank-box {
+      background: #111;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+    }
+
+    .thank-box h2 {
+      margin: 0 0 20px;
+      color: #ff4d4d;
+    }
+
+    .thank-box button {
+      background: #ff4d4d;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #iframeContainer {
+      display: none;
+      margin-top: 40px;
+      text-align: center;
+    }
+
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: 2px solid #ff4d4d;
+      border-radius: 10px;
     }
   </style>
 </head>
@@ -113,54 +131,85 @@
 
 <div class="container">
   <h1>Apóyame</h1>
-  <p class="subtitle">Elige tu método de apoyo preferido</p>
 
   <div class="qr-grid">
-    <div class="qr-card">
-      <i class="fab fa-paypal"></i>
+    <div class="qr-card" onclick="window.open('https://www.paypal.me/tuusuario', '_blank'); mostrarGracias();">
+      <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" />
       <p>PayPal</p>
-      <a href="https://www.paypal.me/tuusuario" target="_blank">Donar con PayPal</a>
     </div>
 
-    <div class="qr-card">
-      <img src="https://i.ibb.co/xK5fs8ZG/descarga-removebg-preview.png" alt="Yape" style="height: 40px;" />
+    <div class="qr-card" onclick="ampliarQR('https://i.ibb.co/MkKBP0xW/Imagen-de-Whats-App-2025-05-11-a-las-11-28-46-27b17dc9-1.jpg')">
+      <img src="https://i.ibb.co/xK5fs8ZG/descarga-removebg-preview.png" alt="Yape" />
       <p>Yape</p>
-      <img class="qr-img" src="https://tuimagen.com/yape_qr.png" onclick="ampliarQR(this.src)" />
+      <img class="qr-img" src="https://i.ibb.co/MkKBP0xW/Imagen-de-Whats-App-2025-05-11-a-las-11-28-46-27b17dc9-1.jpg" />
     </div>
 
-    <div class="qr-card">
-      <img src="https://i.ibb.co/MDSHxFp5/PLIN-removebg-preview.png" alt="Plin" style="height: 40px;" />
-      <p>Plin</p>
-      <img class="qr-img" src="https://tuimagen.com/plin_qr.png" onclick="ampliarQR(this.src)" />
-    </div>
 
-    <div class="qr-card">
-      <i class="fab fa-btc"></i>
-      <p>Binance</p>
-      <img class="qr-img" src="https://tuimagen.com/binance_qr.png" onclick="ampliarQR(this.src)" />
-    </div>
-
-    <div class="qr-card">
-      <i class="fas fa-credit-card"></i>
+    <div class="qr-card" onclick="mostrarIframePago()">
+      <img src="https://cdn-icons-png.flaticon.com/512/633/633611.png" alt="Tarjeta" />
       <p>Tarjeta</p>
-      <a href="https://tucheckout.com/pagar" target="_blank">Pagar con tarjeta</a>
     </div>
+
+    <div class="qr-card" onclick="agradecerYEnviarWhatsApp()">
+      <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp" />
+      <p>Enviar Voucher</p>
+    </div>
+  </div>
+
+  <!-- Iframe para tarjeta -->
+  <div id="iframeContainer">
+    <h2 style="color: #ff4d4d;">Completa tu pago aquí</h2>
+    <iframe id="iframePago" src=""></iframe>
   </div>
 </div>
 
-<!-- Modal QR -->
+<!-- Modal de QR -->
 <div id="qrModal" onclick="cerrarQR()">
   <img src="" id="qrGrande" />
+</div>
+
+<!-- Modal de agradecimiento -->
+<div id="thankModal" onclick="cerrarGracias()">
+  <div class="thank-box">
+    <h2>¡Gracias por tu apoyo!</h2>
+    <p>Tu ayuda hace una gran diferencia ❤️</p>
+    <button onclick="cerrarGracias()">Cerrar</button>
+  </div>
 </div>
 
 <script>
   function ampliarQR(src) {
     document.getElementById("qrGrande").src = src;
     document.getElementById("qrModal").style.display = "flex";
+    mostrarGracias();
   }
 
   function cerrarQR() {
     document.getElementById("qrModal").style.display = "none";
+  }
+
+  function mostrarGracias() {
+    document.getElementById("thankModal").style.display = "flex";
+  }
+
+  function cerrarGracias() {
+    document.getElementById("thankModal").style.display = "none";
+  }
+
+  function agradecerYEnviarWhatsApp() {
+    mostrarGracias();
+    setTimeout(() => {
+      window.open("https://wa.me/51999999999?text=Hola!+Te+envío+el+voucher+del+apoyo", "_blank");
+    }, 1500);
+  }
+
+  function mostrarIframePago() {
+    mostrarGracias();
+    const iframe = document.getElementById("iframePago");
+    const container = document.getElementById("iframeContainer");
+    iframe.src = "https://tucheckout.com/pagar";
+    container.style.display = "block";
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   }
 </script>
 
