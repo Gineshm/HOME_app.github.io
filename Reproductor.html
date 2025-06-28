@@ -47,7 +47,8 @@
     <img id="coverImage" src="https://media.themoviedb.org/t/p/w780/87mebbBtoWzHV0kILgV6M7yIfun.jpg" class="w-full h-full object-cover" />
     <button onclick="startVideo()" class="absolute inset-0 flex items-center justify-center cursor-pointer">
       <div class="bg-white/20 backdrop-blur-sm p-4 rounded-full text-white">
-        <i data-lucide="play" class="w-12 h-12"></i>
+        <!-- Icono con id para poder cambiar en JS -->
+        <i id="portadaIcon" data-lucide="play" class="w-12 h-12"></i>
       </div>
     </button>
   </div>
@@ -111,11 +112,11 @@
       }
     }
 
-    // Configurar salto de intro
+    // Configuración del salto de intro
     if (params.introStart && params.introEnd) {
       introStartVal = parseFloat(params.introStart);
       introEndVal = parseFloat(params.introEnd);
-      // Ver si ya está en rango para mostrar botón
+      // Mostrar botón saltar intro si ya está en rango
       const v = document.getElementById('video');
       if (v.readyState >= 3) {
         if (v.currentTime >= introStartVal && v.currentTime <= introEndVal) {
@@ -124,19 +125,11 @@
       }
     }
 
-    // Configurar enlace para "Sig. episodio" si existe ese parámetro
+    // Configurar enlace de "Sig. episodio" si existe
     if (params['sig.episode']) {
       document.querySelector('button[onclick*="sig.episode"]').onclick = () => {
         window.location.href = decodeURIComponent(params['sig.episode']);
       }
-    }
-
-    // Inicializar iconos y controles
-    lucide.createIcons();
-    resetHideTimeout();
-
-    if (document.getElementById('video').readyState >= 3) {
-      document.getElementById('loadingSpinner').classList.add('hidden');
     }
   });
 
@@ -171,9 +164,11 @@
     if (video.paused || video.ended) {
       video.play();
       reemplazarIcono('pause');
+      actualizarIconoPortada('pause');
     } else {
       video.pause();
       reemplazarIcono('play');
+      actualizarIconoPortada('play');
     }
   }
 
@@ -188,9 +183,16 @@
     lucide.createIcons();
   }
 
+  // Función para actualizar el icono en la portada
+  function actualizarIconoPortada(nuevoIcono) {
+    const icono = document.getElementById('portadaIcon');
+    icono.setAttribute('data-lucide', nuevoIcono);
+    lucide.createIcons();
+  }
+
   // Eventos
-  document.getElementById('video').addEventListener('play', () => { reemplazarIcono('pause'); });
-  document.getElementById('video').addEventListener('pause', () => { reemplazarIcono('play'); });
+  document.getElementById('video').addEventListener('play', () => { reemplazarIcono('pause'); actualizarIconoPortada('pause'); });
+  document.getElementById('video').addEventListener('pause', () => { reemplazarIcono('play'); actualizarIconoPortada('play'); });
   document.getElementById('video').addEventListener('loadedmetadata', () => {
     document.getElementById('progress').max = Math.floor(video.duration);
   });
@@ -210,3 +212,5 @@
     document.getElementById('episodeTitle').classList.toggle('hidden-controls');
   });
 </script>
+</body>
+</html>
