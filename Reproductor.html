@@ -2,27 +2,41 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Reproductor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Reproductor Netflix Móvil</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
-  html, body { height: 100%; margin: 0; overflow: hidden; }
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
   * { user-select: none; }
-  .hidden-controls { opacity: 0; transition: 0.3s; pointer-events: none; }
+  .hidden-controls { opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
   .show-controls { opacity: 1; pointer-events: auto; }
   input[type=range] {
-    appearance: none; height: 4px; background: #aaa;
+    appearance: none;
+    height: 4px;
+    background: #aaa;
   }
   input[type=range]::-webkit-slider-thumb {
-    appearance: none; width: 12px; height: 12px; background: red; border-radius: 50%; cursor: pointer;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background: red;
+    border-radius: 50%;
+    cursor: pointer;
   }
-  .text-outline { text-shadow: 1px 1px 2px black, -1px -1px 2px black; }
+  .text-outline {
+    text-shadow: 1px 1px 2px black, -1px -1px 2px black;
+  }
 </style>
 </head>
-<body class="bg-black relative">
+<body class="bg-black w-full h-full relative">
 
-<!-- Fondo de fondo -->
+<!-- Fondo de pantalla -->
 <div id="backgroundDiv" class="absolute inset-0 bg-cover bg-no-repeat bg-center" style="background-image: url('');"></div>
 
 <!-- Reproductor -->
@@ -70,14 +84,13 @@
   }
 
   // Variables globales
-  let introStart = null;
-  let introEnd = null;
-  let hideTimeout;
+  let introStartVal = null;
+  let introEndVal = null;
 
   window.addEventListener('load', () => {
     const params = getUrlParams();
 
-    // Cargar video
+    // Cargar URL del video
     if (params.link) {
       document.getElementById('video').src = decodeURIComponent(params.link);
     }
@@ -87,9 +100,9 @@
       document.getElementById('episodeTitle').textContent = decodeURIComponent(params.tittle);
     }
 
-    // Fondo
+    // Fondo o portada
     if (params.background) {
-      document.getElementById('backgroundDiv').style.backgroundImage = `url('${decodeURIComponent(params.background)}')`;
+      document.querySelector('#cover img').src = decodeURIComponent(params.background);
     }
 
     // Tiempo inicial
@@ -100,41 +113,36 @@
       }
     }
 
-    // Configurar salto de intro
+    // Configuración del salto de intro
     if (params.introStart && params.introEnd) {
-      introStart = parseFloat(params.introStart);
-      introEnd = parseFloat(params.introEnd);
-      
-      // Si en ese rango, mostrar botón saltar intro
-      const videoEl = document.getElementById('video');
-      if (videoEl.readyState >= 3) {
-        if (videoEl.currentTime >= introStart && videoEl.currentTime <= introEnd) {
+      introStartVal = parseFloat(params.introStart);
+      introEndVal = parseFloat(params.introEnd);
+      // Si ya cargó el video y está en rango, mostrar botón saltar intro
+      const v = document.getElementById('video');
+      if (v.readyState >= 3) {
+        if (v.currentTime >= introStartVal && v.currentTime <= introEndVal) {
           document.getElementById('btnSkipIntro').classList.remove('hidden');
         }
       }
     }
 
-    // Inicializar iconos y controles
-    lucide.createIcons();
-    resetHideTimeout();
-
-    // Ocultar spinner si cargó
-    if (videoEl.readyState >= 3) {
-      document.getElementById('loadingSpinner').classList.add('hidden');
+    // Actualizar enlace de "Sig. episodio" si existe ese parámetro
+    if (params.get('sig.episode')) {
+      document.querySelector('button[onclick*="sig.episode"]').onclick = () => {
+        window.location.href = decodeURIComponent(params.get('sig.episode'));
+      }
     }
   });
 
   const video = document.getElementById('video');
 
-  // Función para saltar intro
   function skipIntro() {
-    if (introEnd !== null) {
-      document.getElementById('video').currentTime = introEnd;
+    if (introEndVal !== null) {
+      document.getElementById('video').currentTime = introEndVal;
       document.getElementById('btnSkipIntro').classList.add('hidden');
     }
   }
 
-  // Función para reiniciar temporizador
   function resetHideTimeout() {
     clearTimeout(hideTimeout);
     hideTimeout = setTimeout(() => {
@@ -143,19 +151,16 @@
     }, 3000);
   }
 
-  // Mostrar controles
   function showControls() {
     document.getElementById('controls')?.classList.remove('hidden-controls');
     document.getElementById('episodeTitle')?.classList.remove('hidden-controls');
   }
 
-  // Ocultar controles
   function hideControls() {
     document.getElementById('controls')?.classList.add('hidden-controls');
     document.getElementById('episodeTitle')?.classList.add('hidden-controls');
   }
 
-  // Toggle play/pause y cambiar icono
   function togglePlay() {
     if (video.paused || video.ended) {
       video.play();
@@ -178,26 +183,21 @@
   }
 
   // Eventos
-  document.getElementById('video').addEventListener('play', () => reemplazarIcono('pause'));
-  document.getElementById('video').addEventListener('pause', () => reemplazarIcono('play'));
-
+  document.getElementById('video').addEventListener('play', () => { reemplazarIcono('pause'); });
+  document.getElementById('video').addEventListener('pause', () => { reemplazarIcono('play'); });
   document.getElementById('video').addEventListener('loadedmetadata', () => {
     document.getElementById('progress').max = Math.floor(video.duration);
   });
-
   document.getElementById('video').addEventListener('timeupdate', () => {
     document.getElementById('progress').value = Math.floor(video.currentTime);
-    // Mostrar saltar intro si en rango
-    if (introStart !== null && introEnd !== null) {
-      if (video.currentTime >= introStart && video.currentTime <= introEnd) {
+    if (introStartVal !== null && introEndVal !== null) {
+      if (video.currentTime >= introStartVal && video.currentTime <= introEndVal) {
         document.getElementById('btnSkipIntro').classList.remove('hidden');
       } else {
         document.getElementById('btnSkipIntro').classList.add('hidden');
       }
     }
   });
-
-  // Clic en la pantalla para toggle controles
   document.getElementById('videoWrapper').addEventListener('click', e => {
     if (e.target.closest('button')) return;
     document.getElementById('controls').classList.toggle('hidden-controls');
