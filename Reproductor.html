@@ -85,6 +85,7 @@
   // Variables globales
   let introStartVal = null;
   let introEndVal = null;
+  let portadaYFondoMostrados = true; // Control para que no vuelvan a mostrarse
 
   window.addEventListener('load', () => {
     const params = getUrlParams();
@@ -116,7 +117,7 @@
     if (params.introStart && params.introEnd) {
       introStartVal = parseFloat(params.introStart);
       introEndVal = parseFloat(params.introEnd);
-      // Mostrar botón saltar intro si ya está en rango
+      // Ver si ya está en rango y mostrar botón
       const v = document.getElementById('video');
       if (v.readyState >= 3) {
         if (v.currentTime >= introStartVal && v.currentTime <= introEndVal) {
@@ -131,9 +132,27 @@
         window.location.href = decodeURIComponent(params['sig.episode']);
       }
     }
+
+    // Ocultar portada y fondo después de cargar y al presionar play
+    // Solo si no se ha ocultado aún
+    ocultarPortadaYFondo();
+    lucide.createIcons();
+    resetHideTimeout();
+    if (document.getElementById('video').readyState >= 3) {
+      document.getElementById('loadingSpinner').classList.add('hidden');
+    }
   });
 
   const video = document.getElementById('video');
+
+  function ocultarPortadaYFondo() {
+    // Solo oculta si aún están visibles
+    if (portadaYFondoMostrados) {
+      document.getElementById('cover').classList.add('hidden');
+      document.getElementById('backgroundDiv').classList.add('hidden');
+      portadaYFondoMostrados = false; // No volver a mostrar
+    }
+  }
 
   function skipIntro() {
     if (introEndVal !== null) {
@@ -164,11 +183,11 @@
     if (video.paused || video.ended) {
       video.play();
       reemplazarIcono('pause');
-      actualizarIconoPortada('pause');
+      // Ocultar portada y fondo en reproducción, solo la primera vez
+      ocultarPortadaYFondo();
     } else {
       video.pause();
       reemplazarIcono('play');
-      actualizarIconoPortada('play');
     }
   }
 
@@ -183,7 +202,21 @@
     lucide.createIcons();
   }
 
-  // Función para actualizar el icono en la portada
+  // Evento para cambiar icono en portada cuando se reproduce o pausa
+  document.getElementById('video').addEventListener('play', () => {
+    reemplazarIcono('pause');
+    actualizarIconoPortada('pause');
+    ocultarPortadaYFondo(); // Oculta la portada cuando empieza
+  });
+  document.getElementById('video').addEventListener('pause', () => {
+    reemplazarIcono('play');
+    actualizarIconoPortada('play');
+  });
+  // También, si quieres que al cargar los datos iniciales se muestre en portada
+  // puedes llamar a actualizarIconoPortada('play') o 'pause' en ese momento si quieres
+  // en el load, por ejemplo:
+  // actualizarIconoPortada('play');
+
   function actualizarIconoPortada(nuevoIcono) {
     const icono = document.getElementById('portadaIcon');
     icono.setAttribute('data-lucide', nuevoIcono);
@@ -191,20 +224,11 @@
   }
 
   // Eventos
-  document.getElementById('video').addEventListener('play', () => { reemplazarIcono('pause'); actualizarIconoPortada('pause'); });
-  document.getElementById('video').addEventListener('pause', () => { reemplazarIcono('play'); actualizarIconoPortada('play'); });
   document.getElementById('video').addEventListener('loadedmetadata', () => {
     document.getElementById('progress').max = Math.floor(video.duration);
   });
   document.getElementById('video').addEventListener('timeupdate', () => {
     document.getElementById('progress').value = Math.floor(video.currentTime);
-    if (introStartVal !== null && introEndVal !== null) {
-      if (video.currentTime >= introStartVal && video.currentTime <= introEndVal) {
-        document.getElementById('btnSkipIntro').classList.remove('hidden');
-      } else {
-        document.getElementById('btnSkipIntro').classList.add('hidden');
-      }
-    }
   });
   document.getElementById('videoWrapper').addEventListener('click', e => {
     if (e.target.closest('button')) return;
