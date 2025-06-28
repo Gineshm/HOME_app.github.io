@@ -36,7 +36,7 @@
 </head>
 <body class="bg-black w-full h-full relative">
 
-<!-- Fondo de pantalla -->
+<!-- Fondo -->
 <div id="backgroundDiv" class="absolute inset-0 bg-cover bg-no-repeat bg-center" style="background-image: url('');"></div>
 
 <!-- Reproductor -->
@@ -56,9 +56,7 @@
   <video id="video" class="w-full h-full object-cover" src="" playsinline></video>
 
   <!-- Título -->
-  <div id="episodeTitle" class="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-sm p-2 rounded z-60">
-    Título
-  </div>
+  <div id="episodeTitle" class="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-sm p-2 rounded z-60">Título</div>
 
   <!-- Saltar intro -->
   <button id="btnSkipIntro" class="absolute right-4 bottom-36 bg-white bg-opacity-50 px-3 py-1 rounded font-bold hidden z-50" onclick="resetHideTimeout(); skipIntro()">
@@ -113,11 +111,11 @@
       }
     }
 
-    // Configuración del salto de intro
+    // Configurar salto de intro
     if (params.introStart && params.introEnd) {
       introStartVal = parseFloat(params.introStart);
       introEndVal = parseFloat(params.introEnd);
-      // Si ya cargó el video y está en rango, mostrar botón saltar intro
+      // Ver si ya está en rango para mostrar botón
       const v = document.getElementById('video');
       if (v.readyState >= 3) {
         if (v.currentTime >= introStartVal && v.currentTime <= introEndVal) {
@@ -126,11 +124,19 @@
       }
     }
 
-    // Actualizar enlace de "Sig. episodio" si existe ese parámetro
-    if (params.get('sig.episode')) {
+    // Configurar enlace para "Sig. episodio" si existe ese parámetro
+    if (params['sig.episode']) {
       document.querySelector('button[onclick*="sig.episode"]').onclick = () => {
-        window.location.href = decodeURIComponent(params.get('sig.episode'));
+        window.location.href = decodeURIComponent(params['sig.episode']);
       }
+    }
+
+    // Inicializar iconos y controles
+    lucide.createIcons();
+    resetHideTimeout();
+
+    if (document.getElementById('video').readyState >= 3) {
+      document.getElementById('loadingSpinner').classList.add('hidden');
     }
   });
 
@@ -204,5 +210,3 @@
     document.getElementById('episodeTitle').classList.toggle('hidden-controls');
   });
 </script>
-</body>
-</html>
