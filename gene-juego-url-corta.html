@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generador de URL Limpia</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet" />
+  <style>
+    .material-symbols-rounded {
+      font-family: 'Material Symbols Rounded';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      direction: ltr;
+      -webkit-font-feature-settings: 'liga';
+      -webkit-font-smoothing: antialiased;
+    }
+    .shimmer {
+      background: linear-gradient(90deg, #f3f3f3 25%, #e0e0e0 50%, #f3f3f3 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen flex items-center justify-center px-4 py-8">
+
+  <div class="bg-white shadow-2xl rounded-3xl max-w-xl w-full p-6 space-y-5 border border-gray-200">
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold text-blue-700 flex items-center gap-2">
+        <span class="material-symbols-rounded text-blue-600">link</span>
+        Generador de URL Limpia
+      </h1>
+    </div>
+
+    <textarea id="urlOriginal" rows="3" placeholder="Pega aquí la URL completa del juego..." class="w-full p-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"></textarea>
+    
+    <button onclick="limpiarURL()" class="w-full flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition">
+      <span class="material-symbols-rounded">auto_fix_high</span>
+      Generar URL Limpia
+    </button>
+
+    <div id="shimmer" class="hidden shimmer h-12 rounded-xl"></div>
+
+    <input id="urlLimpia" readonly placeholder="Aquí aparecerá la URL limpia..." class="w-full p-4 border-2 border-gray-200 rounded-xl bg-gray-100 text-sm font-medium cursor-pointer select-all transition-all hover:bg-white" onclick="copiarURL()" />
+
+    <button onclick="copiarURL()" class="w-full flex items-center justify-center gap-2 bg-green-600 text-white font-semibold py-3 rounded-xl hover:bg-green-700 transition">
+      <span class="material-symbols-rounded">content_copy</span>
+      Copiar URL
+    </button>
+
+    <div id="notificacion" class="text-center text-sm font-semibold hidden text-gray-800 bg-yellow-100 py-2 px-4 rounded-xl"></div>
+  </div>
+
+  <script>
+    function limpiarURL() {
+      const entrada = document.getElementById("urlOriginal").value.trim();
+      const salida = document.getElementById("urlLimpia");
+      const shimmer = document.getElementById("shimmer");
+      const noti = document.getElementById("notificacion");
+
+      salida.classList.add("hidden");
+      shimmer.classList.remove("hidden");
+      noti.classList.add("hidden");
+
+      setTimeout(() => {
+        shimmer.classList.add("hidden");
+        salida.classList.remove("hidden");
+
+        if (!entrada) {
+          mostrarNotificacion("Pega una URL válida.");
+          salida.value = "";
+          return;
+        }
+
+        try {
+          const url = new URL(entrada);
+          const limpia = url.origin + url.pathname;
+          salida.value = limpia;
+          mostrarNotificacion("URL limpia generada correctamente.");
+        } catch (e) {
+          salida.value = "";
+          mostrarNotificacion("URL inválida.");
+        }
+      }, 1000);
+    }
+
+    function copiarURL() {
+      const salida = document.getElementById("urlLimpia");
+      if (!salida.value) {
+        mostrarNotificacion("No hay URL para copiar.");
+        return;
+      }
+      salida.select();
+      document.execCommand("copy");
+      mostrarNotificacion("📋 Copiado al portapapeles.");
+    }
+
+    function mostrarNotificacion(msg) {
+      const noti = document.getElementById("notificacion");
+      noti.textContent = msg;
+      noti.classList.remove("hidden");
+      setTimeout(() => noti.classList.add("hidden"), 3000);
+    }
+  </script>
+</body>
+</html>
