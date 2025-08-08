@@ -28,12 +28,8 @@
       background-size: cover;
       filter: brightness(0.45) saturate(1.2) blur(20px);
       z-index: -1;
-      transition: background-image 1s ease-in-out;
-      will-change: background-image;
+      transition: background-image 1s ease-in-out, opacity 1s ease-in-out;
       opacity: 0;
-      /* Iniciamos oculto */
-      transition-property: opacity, background-image;
-      transition-duration: 1s, 1s;
     }
     #backgroundBlur.visible {
       opacity: 1;
@@ -48,7 +44,6 @@
       overflow: hidden;
     }
 
-    /* Shimmer placeholder */
     .shimmer-wrapper {
       position: relative;
       overflow: hidden;
@@ -118,7 +113,6 @@
       opacity: 1;
     }
 
-    /* Barra de progreso mejorada */
     input[type="range"] {
       -webkit-appearance: none;
       appearance: none;
@@ -190,7 +184,6 @@
       user-select: none;
     }
 
-    /* Controles: descarga, play central grande, compartir */
     .controls {
       display: flex;
       justify-content: center;
@@ -236,20 +229,17 @@
       box-shadow: 0 12px 30px #10b981;
     }
 
-    /* Botones descarga y compartir tamaño mediano */
     #downloadBtn, #shareBtn {
       font-size: 2.4rem;
       width: 56px;
       height: 56px;
     }
 
-    /* Botón activo para repeat y shuffle */
     .active-btn {
       color: #34d399 !important;
       opacity: 1 !important;
     }
 
-    /* Responsive */
     @media (max-width: 600px) {
       .track-title {
         font-size: 1.8rem;
@@ -393,7 +383,6 @@
     function hideShimmer() {
       shimmerPlaceholder.style.display = 'none';
       albumCoverImg.style.display = 'block';
-      // Aparece el fondo borroso con transición
       backgroundBlur.classList.add('visible');
     }
 
@@ -404,6 +393,7 @@
     function loadFromURL() {
       const params = new URLSearchParams(window.location.search);
       const mp3Url = params.get('mp3');
+      const downloadUrl = params.get('descarga') || mp3Url;  // Si no existe descarga, usa mp3
       const imgUrl = params.get('img');
       const titleParam = params.get('title') || 'Título';
       const artistParam = params.get('artist') || 'Artista';
@@ -419,7 +409,6 @@
       showShimmer();
       albumCoverImg.src = imgUrl || 'https://via.placeholder.com/800x600?text=Portada';
 
-      // Cuando carga la imagen, actualizamos fondo y mostramos portada
       albumCoverImg.onload = () => {
         hideShimmer();
         backgroundBlur.style.backgroundImage = `url('${albumCoverImg.src}')`;
@@ -430,8 +419,7 @@
         backgroundBlur.style.backgroundImage = `url('https://via.placeholder.com/800x600?text=Portada')`;
       };
 
-            // Asignamos las URLs para descarga y compartir
-      downloadBtn.dataset.url = mp3Url;
+      downloadBtn.dataset.url = downloadUrl;
       shareBtn.dataset.url = mp3Url;
 
       return true;
@@ -472,7 +460,7 @@
       if (likeIcon.classList.contains('fa-regular')) {
         likeIcon.classList.remove('fa-regular');
         likeIcon.classList.add('fa-solid');
-        likeIcon.style.color = '#10b981';
+        likeIcon.style.color = '#10b981'; // verde
       } else {
         likeIcon.classList.remove('fa-solid');
         likeIcon.classList.add('fa-regular');
