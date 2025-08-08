@@ -26,10 +26,17 @@
       height: 100vh;
       background-position: center;
       background-size: cover;
-      filter: brightness(0.45) saturate(1.2) blur(16px);
+      filter: brightness(0.45) saturate(1.2) blur(20px);
       z-index: -1;
-      transition: background-image 0.7s ease-in-out;
+      transition: background-image 1s ease-in-out;
       will-change: background-image;
+      opacity: 0;
+      /* Iniciamos oculto */
+      transition-property: opacity, background-image;
+      transition-duration: 1s, 1s;
+    }
+    #backgroundBlur.visible {
+      opacity: 1;
     }
     #app {
       display: flex;
@@ -74,6 +81,7 @@
       pointer-events: none;
       box-shadow: 0 10px 30px rgb(0 0 0 / 0.9);
       border-radius: 0 0 2rem 2rem;
+      transition: opacity 0.8s ease;
     }
 
     .info {
@@ -379,11 +387,14 @@
     function showShimmer() {
       shimmerPlaceholder.style.display = 'block';
       albumCoverImg.style.display = 'none';
+      backgroundBlur.classList.remove('visible');
     }
 
     function hideShimmer() {
       shimmerPlaceholder.style.display = 'none';
       albumCoverImg.style.display = 'block';
+      // Aparece el fondo borroso con transición
+      backgroundBlur.classList.add('visible');
     }
 
     function updateProgressBackground(value) {
@@ -405,20 +416,21 @@
       trackTitleElem.textContent = titleParam;
       trackArtistElem.textContent = artistParam;
 
-      // Carga imagen con shimmer y fondo borroso dinámico
       showShimmer();
       albumCoverImg.src = imgUrl || 'https://via.placeholder.com/800x600?text=Portada';
+
+      // Cuando carga la imagen, actualizamos fondo y mostramos portada
       albumCoverImg.onload = () => {
         hideShimmer();
-        // Cambiar el fondo borroso con la misma imagen
         backgroundBlur.style.backgroundImage = `url('${albumCoverImg.src}')`;
       };
+
       albumCoverImg.onerror = () => {
         hideShimmer();
         backgroundBlur.style.backgroundImage = `url('https://via.placeholder.com/800x600?text=Portada')`;
       };
 
-      // Set data-url para descarga y compartir
+            // Asignamos las URLs para descarga y compartir
       downloadBtn.dataset.url = mp3Url;
       shareBtn.dataset.url = mp3Url;
 
